@@ -1,0 +1,6 @@
+Revision history for Perl extension Finance::QuoteOptions.
+
+0.10  Sat Apr 21 08:49:04 2007
+	- First Release; created by h2xs 1.23 with options
+		-b 5.6.1 -AX Finance::QuoteOptions
+
