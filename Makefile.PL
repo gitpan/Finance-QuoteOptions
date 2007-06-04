@@ -5,7 +5,8 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     NAME              => 'Finance::QuoteOptions',
     VERSION_FROM      => 'lib/Finance/QuoteOptions.pm', # finds $VERSION
-    PREREQ_PM         => {'HTML::TokeParser' => 2.28, 'WWW::Mechanize' => 1.20 }, # e.g., Module::Name => 1.1
+    PREREQ_PM         => {'HTML::TokeParser' => 2.28, 'WWW::Mechanize' => 1.20,
+			'Date::Calc' => 5.4 }, # e.g., Module::Name => 1.1
     ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
       (ABSTRACT_FROM  => 'lib/Finance/QuoteOptions.pm', # retrieve abstract from module
        AUTHOR         => 'Kirk Bocek <quoteoptions@kbocek.com>') : ()),

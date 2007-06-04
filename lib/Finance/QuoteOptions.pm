@@ -14,8 +14,7 @@ use WWW::Mechanize;
 use HTML::TokeParser;
 
 # set the version for version checking
-our $VERSION;
-$VERSION     = 0.10;
+our $VERSION = 0.11;
 
 #
 # General non-exported subroutines
@@ -657,13 +656,32 @@ sub getcboedata {
 					$self->{status} = $det->status;
 					$self->{response} = $det->response;
 					my $dat = HTML::TokeParser->new(\$det->{content});
-					DATETABLE: while (my $tag=$dat->get_tag('table', '/table')) {
-						$tag=@{$tag}[0];
-						next DATETABLE if $tag =~ /\/table/i;
-						my $text=$dat->get_trimmed_text('/table');
-						if ($text =~ /expiration date\s*(\d{2})\/(\d{2})\/(\d{4})/i) {
-							$expirations{$exp} = "$3$1$2";
-							last DATETABLE;
+					unless ($self->{success}) {
+						#Detail lookup failed. IP address probably blacklisted
+						#Manually calc 3rd Friday of month
+						my ($tyear,$tmon) = $exp =~ /(\d{2})(\w{3})/;
+						$tyear += 2000;
+						$tmon = lc $tmon;
+						my %mon2digit = qw/jan 01 feb 02 mar 03 apr 04 may 05
+							jun 06 jul 07 aug 08 sep 09 oct 10 nov 11 dec 12/;
+						use Date::Calc;
+						#DOW is 5 for Friday, 3rd occurance
+						my ($year,$month,$day) = 
+							Date::Calc::Nth_Weekday_of_Month_Year($tyear,$mon2digit{$tmon},5,3);
+						#Pad zeros to month and day
+						$month = substr(100+$month,-2);
+						$day = substr(100+$day,-2);
+						$expirations{$exp} = "$year$month$day";
+					} else {
+						#Extract date from option detail page
+						DATETABLE: while (my $tag=$dat->get_tag('table', '/table')) {
+							$tag=@{$tag}[0];
+							next DATETABLE if $tag =~ /\/table/i;
+							my $text=$dat->get_trimmed_text('/table');
+							if ($text =~ /expiration date\s*(\d{2})\/(\d{2})\/(\d{4})/i) {
+								$expirations{$exp} = "$3$1$2";
+								last DATETABLE;
+							}
 						}
 					}
 				}
@@ -757,6 +775,26 @@ The Yahoo address used, using DIA as an example, is:
 The CBOE address used is:
   http://www.cboe.com/DelayedQuote/QuoteTable.aspx
 
+=head2 CBOE Blacklist Warning
+
+The CBOE site has two interfaces for retrieving option information: a page
+where you can download a CSV file and a web page that displays an HTML table.
+While the CSV file would be I<so> simple to process, there's a big warning not
+to do any kind of automated retrieval of that information. So I wrote this
+module to use the web page.
+
+Unfortunately, although I could find no such warning on the web portion of the
+CBOE site, you B<will> still get blacklisted using the web portion. After a 
+couple of weeks of using this code and tens of thousands of queries, I got
+blacklisted.
+
+So if you're doing many queries, use Yahoo has your source. Yahoo is much faster
+anyway. 
+
+I'll update this documentation if (as I hope) the blacklist is temporary. If
+you're reading this more than a couple of months past June 4, 2007 (which is
+when I got blacklisted), then the blacklist is probably permanent.
+
 =head2 Methods
 
 The following methods are available:
@@ -846,6 +884,7 @@ Parameter '0' is next expiration, '1' is two expirations out and so on.
 
 If there happen to be two expirations in the same month, only the first 
 will be returned. Use L<expirations()> to check for multiple expirations.
+See L<Notes> for more information about multiple expirations.
 
 =item * Integer YYYYMMDD. 
 
@@ -1001,10 +1040,7 @@ C<WWW::Mechanize> and C<HTML::TokeParser> each have their own complex set
 of dependencies. So be prepared for a wait if doing a CPAN install on a 
 basic Perl distribution.
 
-The CBOE site has an alternative interface which downloads CSV files
-containing options information. That would make things I<so> much 
-simpler. Unfortunately, it has a big no-automated-retrieval warning on 
-it. <sigh>
+Be sure to read L<CBOE Blacklist Warning>.
 
 C<HTML::TokeParser>'s ability to jump from tag to tag should make this code
 impervious to web page additions or changes which surround the actual options 
@@ -1035,6 +1071,8 @@ None by default.
 L<WWW::Mechanize>
 
 L<HTML::TokeParser>
+
+L<Date::Calc>
 
 L<http://www.perl.com/pub/a/2003/01/22/mechanize.html>
 

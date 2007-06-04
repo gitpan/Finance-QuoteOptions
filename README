@@ -1,4 +1,4 @@
-Finance-QuoteOptions version 0.10
+Finance-QuoteOptions version 0.11
 =================================
 
 A 'screen-scraper' utility that extracts options pricing and series
@@ -8,6 +8,7 @@ This uses either Yahoo Finance or the CBOE web site
 for information. The CBOE probably has better data but Yahoo is
 much faster. By default Yahoo will be used as the data source.
 
+Be sure to read the documentation regarding CBOE blacklisting.
 
 INSTALLATION
 
@@ -24,6 +25,7 @@ This module requires these other modules and libraries:
 
 	WWW::Mechanize
 	HTML::TokeParser
+	Date::Calc
 
 COPYRIGHT AND LICENCE
 
