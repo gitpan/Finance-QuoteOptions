@@ -14,7 +14,7 @@ use WWW::Mechanize;
 use HTML::TokeParser;
 
 # set the version for version checking
-our $VERSION = 0.11;
+our $VERSION = 0.12;
 
 #
 # General non-exported subroutines
@@ -274,6 +274,7 @@ sub getyahoodata {
 	my $q = WWW::Mechanize->new();
 	$q->agent_alias('Linux Mozilla');
 	$q->quiet(1);
+	$q->timeout(60);
 
 	return unless $self->symbol;
 	my $sym = uc $self->symbol;
@@ -283,6 +284,8 @@ sub getyahoodata {
 	$self->{success} = $q->success;
 	$self->{status} = $q->status;
 	$self->{resonse} = $q->response;
+
+	return unless $q->success;
 
 	my $tnum;
 	my $st = HTML::TokeParser->new(\$q->{content});
@@ -529,6 +532,7 @@ sub getcboedata {
 	my $q = WWW::Mechanize->new();
 	$q->agent_alias('Linux Mozilla');
 	$q->quiet(1);
+	$q->timeout(60);
 
 	return unless $self->symbol;
 	my $sym = uc $self->symbol;
@@ -554,6 +558,8 @@ sub getcboedata {
 	$self->{success} = $q->success;
 	$self->{status} = $q->status;
 	$self->{response} = $q->response;
+
+	return unless $q->success;
 
 	# Output from mech-dump to get labels above:
 	#  ucQuoteTableCtl:txtSymbol=     (text)
@@ -764,10 +770,10 @@ series information from the web.
 
 =head1 DESCRIPTION
 
-A 'screen-scraper' utility using C<WWW::Mechanize> and C<HTML::TokeParser>
-to retrieve and parse options information from either Yahoo Finance or the 
-Chicago Board Options Exchange (CBOE) web site. The CBOE probably has better 
-data but Yahoo is much faster. By default, Yahoo Finance is used as the source.
+A 'screen-scraper' utility using C<WWW::Mechanize> and C<HTML::TokeParser> to
+retrieve and parse options information from either Yahoo Finance or the Chicago
+Board Options Exchange (CBOE) web site. The CBOE probably has better data but
+Yahoo is much faster. By default, Yahoo Finance is used as the source.
 
 The Yahoo address used, using DIA as an example, is: 
   http://finance.yahoo.com/q/op?s=DIA
@@ -784,7 +790,7 @@ to do any kind of automated retrieval of that information. So I wrote this
 module to use the web page.
 
 Unfortunately, although I could find no such warning on the web portion of the
-CBOE site, you B<will> still get blacklisted using the web portion. After a 
+CBOE site, you B<will> still get blacklisted using the web portion. After a
 couple of weeks of using this code and tens of thousands of queries, I got
 blacklisted.
 
@@ -805,9 +811,9 @@ The following methods are available:
 
 =item my $q = Finance::QuoteOptions->new('DIA');
 
-The first version creates the new object but doesn't set the target symbol. 
-Use C<symbol()> to set the target symbol. The second version creates
-the new object and sets the target symbol in one step.
+The first version creates the new object but doesn't set the target symbol.
+Use C<symbol()> to set the target symbol. The second version creates the new
+object and sets the target symbol in one step.
 
 =item $q->source;
 
@@ -815,9 +821,9 @@ the new object and sets the target symbol in one step.
 
 =item $q->source('cboe');
 
-Sets or retrieves the current data source. The default is Yahoo Finace.
-Only acceptable options are C<yahoo> and C<cboe>. Submitting anything
-else will set the source to C<yahoo>.
+Sets or retrieves the current data source. The default is Yahoo Finace.  Only
+acceptable options are C<yahoo> and C<cboe>. Submitting anything else will set
+the source to C<yahoo>.
 
 Always returns currently selected source.
 
@@ -825,8 +831,8 @@ Always returns currently selected source.
 
 =item $q->symbol('DIA');
 
-Sets or retrieves the target symbol for the query. The target symbol may be
-set only one time. Nothing will happen if you try to reset the symbol.
+Sets or retrieves the target symbol for the query. The target symbol may be set
+only one time. Nothing will happen if you try to reset the symbol.
 
 =item $q->retrieve;
 
@@ -834,10 +840,10 @@ Retrieves data from designated source.
 
 Returns L<success()> value for last http access. 
 
-Note that L<success()> does I<not> indictate whether there are options 
+Note that L<success()> does I<not> indictate whether there are options
 available for the queried stock. To make that determiniation, check
-L<expirations()> after issuing a L<retrieve()> to see if any options
-have been retrieved. For example:
+L<expirations()> after issuing a L<retrieve()> to see if any options have been
+retrieved. For example:
 
   $q->retrieve;
   if (@{$q->expirations}) {
@@ -848,8 +854,7 @@ have been retrieved. For example:
 
 =item $q->expirations;
 
-Returns arrayref of all expiration dates in the format YYYYMMDD sorted
-by date.
+Returns arrayref of all expiration dates in the format YYYYMMDD sorted by date.
 
 Returns C<undef> if not found.
 
@@ -872,9 +877,7 @@ Returns C<undef> is if expiration is not found.
 
 Parameter can take three forms:
 
-=back
-
-=over 8
+=over 4
 
 =item * Number of Expirations Out
 
@@ -882,9 +885,9 @@ Parameter '0' is next expiration, '1' is two expirations out and so on.
 
 =item * Integer YYYYMM. 
 
-If there happen to be two expirations in the same month, only the first 
-will be returned. Use L<expirations()> to check for multiple expirations.
-See L<Notes> for more information about multiple expirations.
+If there happen to be two expirations in the same month, only the first will be
+returned. Use L<expirations()> to check for multiple expirations.  See L< Notes>
+for more information about multiple expirations.
 
 =item * Integer YYYYMMDD. 
 
@@ -892,11 +895,9 @@ This specifies the exact expiration date.
 
 =back
 
-=over 4
-
 =item 
 
-Array referenced is array of hashes containing all calls or puts for a given 
+Array referenced is array of hashes containing all calls or puts for a given
 expiration. The hashes referenced within the array look like:
 
    {
@@ -916,8 +917,8 @@ Returns C<undef> if not found.
 
 =item $q->putsymbols(0);
 
-Returns an arrayref of call or put symbols for a given expiration.
-Parameter is the number of expirations out starting from zero.
+Returns an arrayref of call or put symbols for a given expiration.  Parameter
+is the number of expirations out starting from zero.
 
 Returns C<undef> if not found.
 
@@ -943,7 +944,8 @@ Returns C<undef> if not found.
 
 =item $q->data()
 
-Returns arrayref containing all data retrieved. See L<Internal Data Structure> below.
+Returns arrayref containing all data retrieved. See L<Internal Data Structure>
+below.
 
 =item $q->success()
 
@@ -951,13 +953,14 @@ Returns arrayref containing all data retrieved. See L<Internal Data Structure> b
 
 =item $q->status()
 
-All three are directly copied from the C<WWW::Mechanize> object. See it's documentation
-for more details. Retrieving full options data for a symbol requires multiple
-http requests. Only the I<last> request will be reported here.
+All three are directly copied from the C<WWW::Mechanize> object. See it's
+documentation for more details. Retrieving full options data for a symbol
+requires multiple http requests. Only the I<last> request will be reported
+here.
 
-C<success()> Returns a boolean telling whether the last request was successful.  If 
-there hasn’t been an operation yet, returns false. This does I<not> indicate if 
-options are available for a stock. See L<retrieve()> above.
+C<success()> Returns a boolean telling whether the last request was successful.
+If there hasn’t been an operation yet, returns false. This does I<not> indicate
+if options are available for a stock. See L<retrieve()> above.
 
 C<response()> Return the current response as an C<HTTP::Response> object.
 
@@ -972,12 +975,13 @@ Returns Finance::QuoteOption version.
 =head2 Internal Data Structure
 
 The methods provided will slice and dice the options data in various ways.
-However, the data is maintained in a single data structure that can be
-directly accessed. Yes, this is bad OO practice, but hey, I think someone
-once said there's more than one way to do it.
+However, the data is maintained in a single data structure that can be directly
+accessed. Yes, this is bad OO practice, but hey, I think someone once said
+there's more than one way to do it.
 
-Everything is stored in an arrayref retrieved by the L<data()> method. Each array element
-is a hashref. Each referenced hash has the keys C<exp>, C<calls> and C<puts>:
+Everything is stored in an arrayref retrieved by the L<data()> method. Each
+array element is a hashref. Each referenced hash has the keys C<exp>, C<calls>
+and C<puts>:
 
  @data (
    \%expiration1 {
@@ -993,8 +997,8 @@ is a hashref. Each referenced hash has the keys C<exp>, C<calls> and C<puts>:
    ...
  )
 
-The arrays referenced by C<calls> and C<puts> are each arrays of hashrefs.
-The final hashes contain all the data for an individual option: 
+The arrays referenced by C<calls> and C<puts> are each arrays of hashrefs.  The
+final hashes contain all the data for an individual option: 
 
  @callorputdata (
    \%option1 {
@@ -1017,8 +1021,8 @@ So, to enumerate all available expiration dates:
 
  print ${$_}{exp},"\n" foreach @{$q->data};
 
-Or to display the number of puts and calls along with the symbol and
-strike price of the first and last call options of each expiration:
+Or to display the number of puts and calls along with the symbol and strike
+price of the first and last call options of each expiration:
 
  foreach (@{$q->data}) {;
    print "\n",${$_}{exp},":\n";
@@ -1030,37 +1034,36 @@ strike price of the first and last call options of each expiration:
       " Strike ${${${$_}{calls}}[-1]}{strike} \n";
  }
 
-If this makes your head hurt as much as it does mine, just stick to using
-the object methods. It's probably safer and the OO geeks won't make
-fun of you.
+If this makes your head hurt as much as it does mine, just stick to using the
+object methods. It's probably safer and the OO geeks won't make fun of you.
 
 =head2 Notes
 
-C<WWW::Mechanize> and C<HTML::TokeParser> each have their own complex set 
-of dependencies. So be prepared for a wait if doing a CPAN install on a 
-basic Perl distribution.
+C<WWW::Mechanize> and C<HTML::TokeParser> each have their own complex set of
+dependencies. So be prepared for a wait if doing a CPAN install on a basic Perl
+distribution.
 
 Be sure to read L<CBOE Blacklist Warning>.
 
 C<HTML::TokeParser>'s ability to jump from tag to tag should make this code
-impervious to web page additions or changes which surround the actual options 
-information we're after. That is, as long as the structure of the tables 
+impervious to web page additions or changes which surround the actual options
+information we're after. That is, as long as the structure of the tables
 containing the basic information doesn't change.
 
 The CBOE site is I<much> slower than Yahoo. In my testing Yahoo took about one
-second to retrieve all options for a stock whereas the CBOE site took five to 
+second to retrieve all options for a stock whereas the CBOE site took five to
 fifteen seconds.
 
 Because of the way the CBOE site is structured, there might be a problem if
-there are options with more than one expiration date in a single month. 
-right now, they'll all end up in the same expiration. I could fix this by
-drilling down into the details for I<every> option but then the CBOE
-retrieval would get even slower. So be careful if weeklys, monthlies or 
-quarterlies are available for a stock. 
-See L<http://www.cboe.com/micro/weeklys/introduction.aspx> for more information.
+there are options with more than one expiration date in a single month.  right
+now, they'll all end up in the same expiration. I could fix this by drilling
+down into the details for I<every> option but then the CBOE retrieval would get
+even slower. So be careful if weeklys, monthlies or quarterlies are available
+for a stock.  See L<http://www.cboe.com/micro/weeklys/introduction.aspx> for
+more information.
 
-Feel free to contact me at the address below if you have any questions, problems
-or suggestions.
+Feel free to contact me at the address below if you have any questions,
+problems or suggestions.
 
 =head2 EXPORT
 
@@ -1086,9 +1089,9 @@ Kirk Bocek, E<lt>quoteoptions E<lt>ATE<gt> kbocek.comE<gt>
 
 Copyright (C) 2007 by Kirk Bocek
 
-This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself, either Perl version 5.8.5 or,
-at your option, any later version of Perl 5 you may have available.
+This library is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself, either Perl version 5.8.5 or, at your option,
+any later version of Perl 5 you may have available.
 
 
 =cut

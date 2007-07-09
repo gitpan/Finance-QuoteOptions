@@ -11,8 +11,12 @@ Revision history for Perl extension Finance::QuoteOptions.
 	- Added code to the CBOE section that will calculate the
 	expiration date from the month and year if the detail page
 	is unavailable. This was because I was blacklisted in two
-	step, first the detail page on a Friday, then the main page
+	steps, first the detail page on a Friday, then the main page
 	on a Monday. I was hoping that the blacklist would happen
 	only on the detail page. Alas.
 
+0.12 Jul 8 2007
+	- Query code now returns immediately if first HTTP retrieval
+	fails. Fixes occasional query hang.
+	- Documentation fixes.
  
