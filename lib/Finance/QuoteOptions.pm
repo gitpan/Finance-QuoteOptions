@@ -14,7 +14,7 @@ use WWW::Mechanize;
 use HTML::TokeParser;
 
 # set the version for version checking
-our $VERSION = 0.12;
+our $VERSION = 0.13;
 
 #
 # General non-exported subroutines
@@ -39,6 +39,7 @@ sub new {
 	$self->{symbol} = undef;
 	$self->{success} = undef;
 	$self->{status} = undef;
+	$self->{proxy} = undef;
 
 	$self->{symbol} = shift if @_; #Set symbol if provided
 	$self->{symbol} = uc $self->{symbol} if $self->{symbol};
@@ -246,6 +247,14 @@ sub response {
 	return $self->{response};
 }
 
+sub response {
+	#Set or retrieve proxy setting 
+	my $self = shift;
+	my $stat = shift;
+	$self->{proxy} = $stat if defined $stat;
+	return $self->{proxy};
+}
+
 sub data {
 	#Return reference to data hash
 	my $self = shift;
@@ -275,6 +284,8 @@ sub getyahoodata {
 	$q->agent_alias('Linux Mozilla');
 	$q->quiet(1);
 	$q->timeout(60);
+	#Set proxy if user has provided one
+	$q->proxy(['http', 'ftp'], $self->proxy) if $self->proxy;
 
 	return unless $self->symbol;
 	my $sym = uc $self->symbol;
@@ -533,6 +544,8 @@ sub getcboedata {
 	$q->agent_alias('Linux Mozilla');
 	$q->quiet(1);
 	$q->timeout(60);
+	#Set proxy if user has provided one
+	$q->proxy(['http', 'ftp'], $self->proxy) if $self->proxy;
 
 	return unless $self->symbol;
 	my $sym = uc $self->symbol;
@@ -797,9 +810,8 @@ blacklisted.
 So if you're doing many queries, use Yahoo has your source. Yahoo is much faster
 anyway. 
 
-I'll update this documentation if (as I hope) the blacklist is temporary. If
-you're reading this more than a couple of months past June 4, 2007 (which is
-when I got blacklisted), then the blacklist is probably permanent.
+I was blacklisted on June 4, 2007. As of January 2008, I'm still blacklisted. I
+suspect the block is permanent. 
 
 =head2 Methods
 
@@ -833,6 +845,16 @@ Always returns currently selected source.
 
 Sets or retrieves the target symbol for the query. The target symbol may be set
 only one time. Nothing will happen if you try to reset the symbol.
+
+=item $q->proxy;
+
+=item $q->proxy('http://proxy.example.com:8000/');
+
+Sets or retrieves the proxy setting for the query. Set this before issuing a
+retrieve command.
+
+This is currently untested. If you are behind a proxy, please email the author
+if you use this feature and let him know how it works. 
 
 =item $q->retrieve;
 

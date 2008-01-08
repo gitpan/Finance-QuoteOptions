@@ -20,3 +20,6 @@ Revision history for Perl extension Finance::QuoteOptions.
 	fails. Fixes occasional query hang.
 	- Documentation fixes.
  
+0.13 Jan 8 2008
+	- Added Proxy setting
+
