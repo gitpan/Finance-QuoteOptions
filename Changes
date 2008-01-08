@@ -23,3 +23,5 @@ Revision history for Perl extension Finance::QuoteOptions.
 0.13 Jan 8 2008
 	- Added Proxy setting
 
+0.14 Jan 8 2008
+	- Fixed Proxy setting

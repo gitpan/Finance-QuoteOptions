@@ -14,7 +14,7 @@ use WWW::Mechanize;
 use HTML::TokeParser;
 
 # set the version for version checking
-our $VERSION = 0.13;
+our $VERSION = 0.14;
 
 #
 # General non-exported subroutines
@@ -247,7 +247,7 @@ sub response {
 	return $self->{response};
 }
 
-sub response {
+sub proxy {
 	#Set or retrieve proxy setting 
 	my $self = shift;
 	my $stat = shift;
