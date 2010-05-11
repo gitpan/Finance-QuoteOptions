@@ -2,7 +2,7 @@
 # Finance::QuoteOptions Module
 # Extract options prices and series information from the web.
 #
-# (C) Copyright 2007-2009 Kirk Bocek
+# (C) Copyright 2007-2010 Kirk Bocek
 # Version 0.20 Contributions by Dan Dascalescu
 #
 package Finance::QuoteOptions;
@@ -15,7 +15,7 @@ use WWW::Mechanize;
 use HTML::TokeParser;
 
 # set the version for version checking
-our $VERSION = 0.20;
+our $VERSION = 0.21;
 
 ############################
 # Start of class definitions
@@ -308,6 +308,8 @@ sub getyahoodata {
 
     my %month2num = qw(jan 01 feb 02 mar 03 apr 04 may 05 jun 06
         jul 07 aug 08 sep 09 oct 10 nov 11 dec 12);
+    my %lmonth2num = qw(january 01 febuary 02 march 03 april 04 may 05 june 06
+        july 07 august 08 september 09 october 10 november 11 december 12);
     my @optmonths = ('start');
     #Hash to translate Yahoo's column headers to our standard hash keys
     my %xheaders = (
@@ -398,7 +400,8 @@ sub getyahoodata {
             $newrow=1;
             CELL: while ($tag=$st->get_tag('td','/tr','/html')) {
                 #Second loop: getting table cells
-                my $in_the_money = 0+ (ref $tag->[1] && exists $tag->[1]->{class} && $tag->[1]->{class} eq 'yfnc_h');
+                my $in_the_money = 0+ (ref $tag->[1] && 
+					exists $tag->[1]->{class} && $tag->[1]->{class} eq 'yfnc_h');
                 $tag = $tag->[0];
 
                 last MAIN if $tag =~ /\/html/i; #No data returned
@@ -453,8 +456,9 @@ sub getyahoodata {
                 if ($mode =~ /gcalldate|gputdate/) {
                     if ($text and not $expdate) {
                         #Extract expiration date, convert to YYYYMMDD
-                        $text =~ /(\w{3})\s+(\d{1,2}),\s+(\d{4})/;
-                        $expdate = $3 . $month2num{lc $1} . $2;
+                        #$text =~ /(\w{3})\s+(\d{1,2}),\s+(\d{4})/;
+                        $text =~ /(\w{3,9})\s+(\d{1,2}),\s+(\d{4})/;
+                        $expdate = $3 . $lmonth2num{lc $1} . $2;
                     }
                     $mode = 'gcallheaders' if $mode eq 'gcalldate';
                     $mode = 'gputheaders' if $mode eq 'gcalldate';

@@ -1,5 +1,8 @@
 Revision history for Perl extension Finance::QuoteOptions.
 
+0.21 May 11 2010
+  Fixed Yahoo date parsing.
+
 0.20 June 8 2009
   Most of the changes are from Dan Dascalescu. However, the author
   found a few difficulties and had to make some changes.
