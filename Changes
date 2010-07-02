@@ -1,5 +1,9 @@
 Revision history for Perl extension Finance::QuoteOptions.
 
+0.22 July 2 2010
+  Date parsing now adapts to either long or short month names.
+  Fixed February options retreival.
+
 0.21 May 11 2010
   Fixed Yahoo date parsing.
 

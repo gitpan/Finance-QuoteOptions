@@ -15,7 +15,7 @@ use WWW::Mechanize;
 use HTML::TokeParser;
 
 # set the version for version checking
-our $VERSION = 0.21;
+our $VERSION = 0.22;
 
 ############################
 # Start of class definitions
@@ -308,7 +308,7 @@ sub getyahoodata {
 
     my %month2num = qw(jan 01 feb 02 mar 03 apr 04 may 05 jun 06
         jul 07 aug 08 sep 09 oct 10 nov 11 dec 12);
-    my %lmonth2num = qw(january 01 febuary 02 march 03 april 04 may 05 june 06
+    my %lmonth2num = qw(january 01 february 02 march 03 april 04 may 05 june 06
         july 07 august 08 september 09 october 10 november 11 december 12);
     my @optmonths = ('start');
     #Hash to translate Yahoo's column headers to our standard hash keys
@@ -340,9 +340,16 @@ sub getyahoodata {
                     my ($exp) = $text =~ /view by expiration(.*)call options/i;
                     @optmonths = split(/\|/,$exp);
                     #Convert 'Jan 01' format to 'YYYY-MM'
+					#Yahoo uses *both* short 'Jan' and long 'January'
                     for (@optmonths) {
-                        last unless /(\w{3})\s+(\d{2,4})/;
-                        $_ = ($2 < 100 ? 2000+$2 : $2) . '-' . $month2num{lc $1};
+                        last unless /(\w{3,9})\s+(\d{2,4})/;
+						if (length($1) == 3) {
+							#short month name or May
+                        	$_ = ($2 < 100 ? 2000+$2 : $2) . '-' . $month2num{lc $1};
+						} else {
+							#long month name
+                        	$_ = ($2 < 100 ? 2000+$2 : $2) . '-' . $lmonth2num{lc $1};
+						}
                     };
                     shift @optmonths; #The first month is the page we're already at
                     last GETEXP;
@@ -458,7 +465,13 @@ sub getyahoodata {
                         #Extract expiration date, convert to YYYYMMDD
                         #$text =~ /(\w{3})\s+(\d{1,2}),\s+(\d{4})/;
                         $text =~ /(\w{3,9})\s+(\d{1,2}),\s+(\d{4})/;
-                        $expdate = $3 . $lmonth2num{lc $1} . $2;
+						if (length($1) == 3) {
+							#short month name or May
+                        	$expdate = $3 . $month2num{lc $1} . $2;
+						} else {
+							#long month name
+                        	$expdate = $3 . $lmonth2num{lc $1} . $2;
+						}
                     }
                     $mode = 'gcallheaders' if $mode eq 'gcalldate';
                     $mode = 'gputheaders' if $mode eq 'gcalldate';
