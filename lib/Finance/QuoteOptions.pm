@@ -15,7 +15,7 @@ use WWW::Mechanize;
 use HTML::TokeParser;
 
 # set the version for version checking
-our $VERSION = 0.22;
+our $VERSION = 0.23;
 
 ############################
 # Start of class definitions
@@ -405,15 +405,16 @@ sub getyahoodata {
             last ROW if $tag =~ /\/table/i and $mode =~ /gputdata/;
             #First loop: Getting Rows
             $newrow=1;
-            CELL: while ($tag=$st->get_tag('td','/tr','/html')) {
+            CELL: while ($tag=$st->get_tag('th', 'td','/tr','/html')) {
                 #Second loop: getting table cells
+				#As of 2010-08-31 Yahoo using <th> tags
                 my $in_the_money = 0+ (ref $tag->[1] && 
 					exists $tag->[1]->{class} && $tag->[1]->{class} eq 'yfnc_h');
                 $tag = $tag->[0];
 
                 last MAIN if $tag =~ /\/html/i; #No data returned
                 last CELL if $tag =~ /\/tr/i; #last cell in row
-                $text=$st->get_trimmed_text('/td');
+                $text=$st->get_trimmed_text('/th', '/td');
 
                 #Perform cleanup & set mode between new rows
                 if ($newrow) {
@@ -463,6 +464,7 @@ sub getyahoodata {
                 if ($mode =~ /gcalldate|gputdate/) {
                     if ($text and not $expdate) {
                         #Extract expiration date, convert to YYYYMMDD
+						#Text Looks like Expire at close Friday, September 17, 2010
                         #$text =~ /(\w{3})\s+(\d{1,2}),\s+(\d{4})/;
                         $text =~ /(\w{3,9})\s+(\d{1,2}),\s+(\d{4})/;
 						if (length($1) == 3) {
@@ -474,7 +476,7 @@ sub getyahoodata {
 						}
                     }
                     $mode = 'gcallheaders' if $mode eq 'gcalldate';
-                    $mode = 'gputheaders' if $mode eq 'gcalldate';
+                    $mode = 'gputheaders' if $mode eq 'gputdate';
                 } elsif ($mode =~ /gcallheaders|gputheaders/) {
                     #Extract table headers
                     #Use %xheaders to translate to our standard headers
@@ -496,12 +498,12 @@ sub getyahoodata {
                     #Remove the '.X' Yahoo appends to symbol
                     if ($mode eq 'gcalldata') {
                         $calldata->[-1]->{$callheaders[$colcnt]} = $text;
-                        $calldata->[-1]->{symbol} =~ s/\.X$//i
-                            if $callheaders[$colcnt] eq 'symbol';
+                    #    $calldata->[-1]->{symbol} =~ s/\.X$//i
+                    #        if $callheaders[$colcnt] eq 'symbol';
                     } else {
                         $putdata->[-1]->{$putheaders[$colcnt]} = $text;
-                        $putdata->[-1]->{symbol} =~ s/\.X$//i
-                            if $putheaders[$colcnt] eq 'symbol';
+                    #    $putdata->[-1]->{symbol} =~ s/\.X$//i
+                    #        if $putheaders[$colcnt] eq 'symbol';
                     }
                     $colcnt++;
                 }

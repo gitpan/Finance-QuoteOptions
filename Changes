@@ -1,5 +1,8 @@
 Revision history for Perl extension Finance::QuoteOptions.
 
+0.23 August 31 2010 
+  Yahoo started using <th> tags for the column headers.
+
 0.22 July 2 2010
   Date parsing now adapts to either long or short month names.
   Fixed February options retreival.
